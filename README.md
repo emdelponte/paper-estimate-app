@@ -4,7 +4,6 @@ This is a research compendium that contains data, R codes, figures and versions 
 
 # Manuscript title
 
-Fitness traits of deoxynivalenol and nivalenol-producing *Fusarium graminearum* species complex strains from wheat
 
 
 # Authors of this repository
