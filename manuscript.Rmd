@@ -1,0 +1,16 @@
+---
+title: "Manuscript title"
+author: ""
+csl: plant-disease.csl
+bibliography: crossref.bib
+output: 
+  word_document:
+    reference_docx: docs/manuscript.docx
+---
+
+
+Institutions
+
+Corresponding author: 
+
+## Abstract

@@ -1,0 +1,603 @@
+% Analysis code
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+
+```
+
+
+```{r, message=FALSE, warning=FALSE}
+library(plyr)
+library(tidyverse) # tidy tools
+library(readxl) # import from excel
+library(epiR) # ccc analysis
+library(ggthemes)
+library(irr) # icc analysis
+theme_set(theme_few())
+```
+
+## Introduction
+
+
+## Data import 
+
+We will import the raw data from an excel file using `read_excel` function of the `readxl` package.
+
+```{r message=FALSE, warning=FALSE}
+dat_cls <- read_excel("data/data-sad-cls.xlsx", 1)
+```
+
+We will reshape the data from the wide (scales in different colums) to the long (tidy) format where each row is an obervation, or leaf in this case. There will be three variables to focus on: actual, estimate and error of the estimate (estimate - actual), which will be created below. 
+
+```{r}
+dat_sad <- dat_cls %>%
+  gather(assessment, estimate, 4:8) %>%
+  mutate(error = estimate - actual)
+dat_sad
+```
+
+
+After reshaping, we can see that the total number of assessed leaves was  `r nrow(dat_sad)`. Let's now start with the exploratory analysis.
+
+## Data visualization
+Let's first have a look at the overall distribution of the error of the estimates by the different groups, representing each assessment: unaided or aided by four other methods. A not so common but useful way to visualize data by categories is using violin plots instead of boxplots. 
+
+```{r}
+dat_sad %>%
+  ggplot(aes(assessment, error)) +
+  geom_violin(aes(fill = factor(assessment))) +
+  geom_abline(slope = 0, intercept = 0, linetype = 2)+
+  theme_few() +
+  theme(legend.position = "none")+
+  ggsave("figs/violin-estimates.png", width = 5, height = 3)
+```
+
+
+Another more common way is using density plots. 
+
+
+```{r message=FALSE, warning=FALSE}
+
+library(ggridges)
+dat_sad %>%
+  ggplot(aes(error, assessment, fill = assessment)) +
+  geom_density_ridges(scale = 2, alpha = 0.7) +
+  theme_ridges() +
+  geom_vline(xintercept = 0) +
+  theme(legend.position = "none")+
+  ggsave("figs/density-estimates.png", width = 6, height = 4)
+```
+
+
+The plots above confirms the overall trend of severity overestimation for the LOG and ORD scales. Still, there are quite a few situations of understimating severity when using theses scales, for which reasons should be explored. 
+
+This can be due to variability among raters or the range of actual severity,which cannot be learned from the above visualizations. Let's then make a plot that allows the comparison with the actual values to see in which method and at which range of actual severity overestimation is most common.
+
+```{r message=FALSE, warning=FALSE}
+dat_sad %>%
+  ggplot(aes(actual, error, color = assessment)) +
+  # geom_point(color = "black", size = 0.5)+
+  geom_abline(slope = 0, intercept = 0, linetype = 2) +
+  geom_point(aes(actual, error), size = 1.5, alpha = 0.1) +
+  geom_smooth(aes(actual, error), se = F) +
+  facet_wrap(~ assessment, ncol = 5) +
+  theme_few() +
+  theme(legend.position = "none") +
+  labs(y = "Error", x = "Actual severity (%)") +
+  ggsave("figs/error_assess.png", width = 8, height = 2.5)
+```
+
+
+For most cases, overestimation occurred at less than 30% severity, especially for the aided estimates using the LIN-ORD scales and UN estimates. However, when using the LOG scales the overestimation was more consistent across the entire severity range. Let's depict variation in error of the estimates by rater and method within rater. 
+
+
+```{r message=FALSE, warning=FALSE}
+dat_sad %>%
+  ggplot(aes(actual, error, color = assessment)) +
+  geom_abline(slope = 0, intercept = 0, linetype = 2) +
+  geom_point(aes(actual, error), size = 1.5, alpha = 0.2) +
+  geom_smooth(aes(actual, error), se = F, alpha = 0.2) +
+  facet_wrap(~ rater, ncol = 6) +
+  theme_few() +
+  theme(legend.position = "top") +
+  labs(y = "Value", x = "Actual severity") +
+  ggsave("figs/error_assess_rater.png", width = 8, height = 9)
+```
+
+
+## Concordance analysis
+
+The Lin's concordance correlation coefficient provides a measure of overall accuracy and its components such as bias coefficient and precision. Let's calculate it separately for each assessment.
+
+Unaided
+
+```{r}
+dat_sad_UN <- dat_sad %>%
+  group_by(rater) %>%
+  filter(assessment == "UN")
+ccc_UN <- by(dat_sad_UN, dat_sad_UN$rater, function(dat_sad_UN)
+  epi.ccc(dat_sad_UN$estimate, dat_sad_UN$actual, ci = "z-transform", conf.level = 0.95))
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+UN_pc <- ccc_UN %>%
+  map_df("rho.c") %>%
+  mutate(rater = 1:30) %>%
+  mutate(rater = as.character(rater)) %>%
+  select(4, 1)
+
+UN_Cb <- ccc_UN %>%
+  map_df("C.b") %>%
+  gather(rater, Cb)
+
+UN_l.shift <- ccc_UN %>%
+  map_df("l.shift") %>%
+  gather(rater, l.shift)
+
+UN_s.shift <- ccc_UN %>%
+  map_df("s.shift") %>%
+  gather(rater, s.shift)
+
+ccc_UN_df <- left_join(UN_l.shift, UN_s.shift, by = "rater") %>%
+  left_join(., UN_Cb, by = "rater") %>%
+  left_join(., UN_pc, by = "rater") %>%
+  mutate(r = est * Cb) %>%
+  mutate(rater = as.numeric(rater)) %>%
+  mutate(method = "UN")
+```
+
+
+
+Linear ordinal scale 
+
+```{r}
+dat_sad_LINORD <- dat_sad %>%
+  group_by(rater) %>%
+  filter(assessment == "LINORD")
+ccc_LINORD <- by(dat_sad_LINORD, dat_sad_LINORD$rater, function(dat_sad_LINORD)
+  epi.ccc(dat_sad_LINORD$estimate, dat_sad_LINORD$actual, ci = "z-transform", conf.level = 0.95))
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+LINORD_pc <- ccc_LINORD %>%
+  map_df("rho.c") %>%
+  mutate(rater = 1:30) %>%
+  mutate(rater = as.character(rater)) %>%
+  select(4, 1)
+
+LINORD_Cb <- ccc_LINORD %>%
+  map_df("C.b") %>%
+  gather(rater, Cb)
+
+LINORD_l.shift <- ccc_LINORD %>%
+  map_df("l.shift") %>%
+  gather(rater, l.shift)
+
+LINORD_s.shift <- ccc_LINORD %>%
+  map_df("s.shift") %>%
+  gather(rater, s.shift)
+
+ccc_LINORD_df <- left_join(LINORD_l.shift, LINORD_s.shift, by = "rater") %>%
+  left_join(., LINORD_Cb, by = "rater") %>%
+  left_join(., LINORD_pc, by = "rater") %>%
+  mutate(r = est * Cb) %>%
+  mutate(rater = as.numeric(rater)) %>%
+  mutate(method = "LINORD")
+```
+
+
+
+Linear continuous scale
+
+```{r}
+dat_sad_LINCON <- dat_sad %>%
+  group_by(rater) %>%
+  filter(assessment == "LINCON")
+ccc_LINCON <- by(dat_sad_LINCON, dat_sad_LINCON$rater, function(dat_sad_LINCON)
+  epi.ccc(dat_sad_LINCON$estimate, dat_sad_LINCON$actual, ci = "z-transform", conf.level = 0.95))
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+LINCON_pc <- ccc_LINCON %>%
+  map_df("rho.c") %>%
+  mutate(rater = 1:30) %>%
+  mutate(rater = as.character(rater)) %>%
+  select(4, 1)
+
+LINCON_Cb <- ccc_LINCON %>%
+  map_df("C.b") %>%
+  gather(rater, Cb)
+
+LINCON_l.shift <- ccc_LINCON %>%
+  map_df("l.shift") %>%
+  gather(rater, l.shift)
+
+LINCON_s.shift <- ccc_LINCON %>%
+  map_df("s.shift") %>%
+  gather(rater, s.shift)
+
+ccc_LINCON_df <- left_join(LINCON_l.shift, LINCON_s.shift, by = "rater") %>%
+  left_join(., LINCON_Cb, by = "rater") %>%
+  left_join(., LINCON_pc, by = "rater") %>%
+  mutate(r = est * Cb) %>%
+  mutate(rater = as.numeric(rater)) %>%
+  mutate(method = "LINCON")
+```
+
+
+Log ordinal scale
+
+```{r}
+dat_sad_LOGORD <- dat_sad %>%
+  group_by(rater) %>%
+  filter(assessment == "LOGORD")
+ccc_LOGORD <- by(dat_sad_LOGORD, dat_sad_LOGORD$rater, function(dat_sad_LOGORD)
+  epi.ccc(dat_sad_LOGORD$estimate, dat_sad_LOGORD$actual, ci = "z-transform", conf.level = 0.95))
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+LOGORD_pc <- ccc_LOGORD %>%
+  map_df("rho.c") %>%
+  mutate(rater = 1:30) %>%
+  mutate(rater = as.character(rater)) %>%
+  select(4, 1)
+
+LOGORD_Cb <- ccc_LOGORD %>%
+  map_df("C.b") %>%
+  gather(rater, Cb)
+
+LOGORD_l.shift <- ccc_LOGORD %>%
+  map_df("l.shift") %>%
+  gather(rater, l.shift)
+
+LOGORD_s.shift <- ccc_LOGORD %>%
+  map_df("s.shift") %>%
+  gather(rater, s.shift)
+
+ccc_LOGORD_df <- left_join(LOGORD_l.shift, LOGORD_s.shift, by = "rater") %>%
+  left_join(., LOGORD_Cb, by = "rater") %>%
+  left_join(., LOGORD_pc, by = "rater") %>%
+  mutate(r = est * Cb) %>%
+  mutate(rater = as.numeric(rater)) %>%
+  mutate(method = "LOGORD")
+```
+
+Log continuous scale
+
+```{r}
+dat_sad_LOGCON <- dat_sad %>%
+  group_by(rater) %>%
+  filter(assessment == "LOGCON")
+ccc_LOGCON <- by(dat_sad_LOGCON, dat_sad_LOGCON$rater, function(dat_sad_LOGCON)
+  epi.ccc(dat_sad_LOGCON$estimate, dat_sad_LOGCON$actual, ci = "z-transform", conf.level = 0.95))
+```
+
+```{r, message=FALSE, warning=FALSE, include=FALSE}
+LOGCON_pc <- ccc_LOGCON %>%
+  map_df("rho.c") %>%
+  mutate(rater = 1:30) %>%
+  mutate(rater = as.character(rater)) %>%
+  select(4, 1)
+
+LOGCON_Cb <- ccc_LOGCON %>%
+  map_df("C.b") %>%
+  gather(rater, Cb)
+
+LOGCON_l.shift <- ccc_LOGCON %>%
+  map_df("l.shift") %>%
+  gather(rater, l.shift)
+
+LOGCON_s.shift <- ccc_LOGCON %>%
+  map_df("s.shift") %>%
+  gather(rater, s.shift)
+
+ccc_LOGCON_df <- left_join(LOGCON_l.shift, LOGCON_s.shift, by = "rater") %>%
+  left_join(., LOGCON_Cb, by = "rater") %>%
+  left_join(., LOGCON_pc, by = "rater") %>%
+  mutate(r = est * Cb) %>%
+  mutate(rater = as.numeric(rater)) %>%
+  mutate(method = "LOGCON")
+```
+
+All scales
+
+```{r}
+
+ccc_all <- rbind(
+  ccc_UN_df,
+  ccc_LINCON_df,
+  ccc_LINORD_df,
+  ccc_LOGCON_df,
+  ccc_LOGORD_df
+)
+ccc <- ccc_all %>%
+  gather(stat, coef, 2:6)
+```
+
+
+We will use the violin plots to depict the distribution of the coefficients by the 30 rater across the different assessment methods.
+
+```{r}
+pc <- ccc %>%
+  filter(stat == "est") %>%
+  ggplot(aes(method, coef, fill = method)) +
+  geom_violin() +
+  theme(legend.position = "none") +
+  geom_jitter(width = 0.05, shape = 1) +
+  labs(y = "LCC")
+pc
+```
+
+
+```{r}
+cb <- ccc %>%
+  filter(stat == "Cb") %>%
+  ggplot(aes(method, coef, fill = method)) +
+  geom_violin() +
+  theme(legend.position = "none") +
+  geom_jitter(width = 0.05, shape = 1) +
+  labs(y = "Cb")
+cb
+```
+
+```{r}
+r <- ccc %>%
+  filter(stat == "r") %>%
+  ggplot(aes(method, coef, fill = method)) +
+  geom_violin() +
+  theme(legend.position = "none") +
+  geom_jitter(width = 0.05, shape = 1) +
+  labs(y = "r")
+r
+```
+
+```{r}
+l.shift <- ccc %>%
+  filter(stat == "l.shift") %>%
+  ggplot(aes(method, coef, fill = method)) +
+  geom_violin() +
+  theme(legend.position = "none") +
+  geom_jitter(width = 0.05, shape = 1) +
+  labs(y = "location-shift")
+l.shift
+```
+
+```{r}
+s.shift <- ccc %>%
+  filter(stat == "s.shift") %>%
+  ggplot(aes(method, coef, fill = method)) +
+  geom_violin() +
+  theme(legend.position = "none") +
+  geom_jitter(width = 0.05, shape = 1) +
+  labs(y = "scale-shift")
+s.shift
+```
+
+
+## Hypothesis tests
+
+We will fit a multi-level (mixed) model using the *lme4* package and compare means *lsmeans* package. In the model, assessment are considered fixed effects and raters are considered random effects. A dummy variable representing unaided and aided assessment was created and added as random effects to account for the dependency, or the same raters assessing unaided and aided by any means. 
+
+We will need to reshape data to the wide format and fit the model separately for each Lin's CCC component.
+
+```{r}
+ccc2 <- ccc %>%
+  filter(stat != "ccc.lower") %>%
+  filter(stat != "ccc.upper") %>%
+  spread(stat, coef)
+
+ccc2$method2 <- ifelse(ccc2$method == "UN", "UNAIDED", "AIDED")
+```
+
+### Concordance coefficient
+
+```{r}
+# pc
+library(lme4)
+mix_pc <- lmer(est ~ method + (1 + method2 | rater), data = ccc2)
+summary(mix_pc)
+library(lsmeans)
+mean_pc <- lsmeans(mix_pc, ~ method)
+df_pc <- cld(mean_pc)
+df_pc <- df_pc %>%
+  select(method, lsmean, .group) %>%
+  mutate(stat = "pc")
+```
+
+
+### Bias coefficient
+
+```{r}
+# Bc
+library(lme4)
+mix_Cb <- lmer(Cb ~ method + (1 + method2 | rater), data = ccc2)
+summary(mix_Cb)
+library(lsmeans)
+mean_Cb <- lsmeans(mix_Cb, ~ method)
+df_Cb <- cld(mean_Cb)
+df_Cb <- df_Cb %>%
+  select(method, lsmean, .group) %>%
+  mutate(stat = "Cb")
+```
+
+
+
+
+### Precison
+
+```{r}
+# r
+library(lme4)
+mix_r <- lmer(r ~ method + (1 + method2 | rater), data = ccc2)
+summary(mix_r)
+library(lsmeans)
+mean_r <- lsmeans(mix_r, ~ method)
+df_r <- cld(mean_r)
+df_r <- df_r %>%
+  select(method, lsmean, .group) %>%
+  mutate(stat = "r")
+```
+
+### location-shift
+```{r}
+# l.shift
+library(lme4)
+mix_l.shift <- lmer(l.shift ~ method + (1 + method2 | rater), data = ccc2)
+summary(mix_l.shift)
+library(lsmeans)
+mean_l.shift <- lsmeans(mix_l.shift, ~ method)
+df_l.shift <- cld(mean_l.shift)
+df_l.shift <- df_l.shift %>%
+  select(method, lsmean, .group) %>%
+  mutate(stat = "l.shift")
+```
+
+
+###Scale-shift
+
+```{r}
+
+library(lme4)
+mix_s.shift <- lmer(s.shift ~ method + (1 + method2 | rater), data = ccc2)
+summary(mix_s.shift)
+library(lsmeans)
+mean_s.shift <- lsmeans(mix_s.shift, ~ method)
+df_s.shift <- cld(mean_s.shift)
+df_s.shift <- df_s.shift %>%
+  select(method, lsmean, .group) %>%
+  mutate(stat = "s.shift")
+```
+
+
+### CCC summary
+
+```{r}
+
+df_all <- rbind(df_pc, df_r, df_Cb, df_s.shift, df_l.shift) %>%
+  mutate(lsmean = round(as.numeric(lsmean), 2))
+
+
+table1 <- df_all %>%
+  unite(lsmean2, lsmean, .group, sep = " ") %>%
+  spread(stat, lsmean2)
+
+library(knitr)
+kable(table1)
+```
+
+## Interrater reliability
+
+Two methods will be used here. The overall concordance coefficient and the intra-class correlation coefficient.
+
+Unaided
+
+```{r}
+library(irr)
+
+sad_UN <- dat_cls %>%
+  select(rater, UN) %>%
+  group_by(rater) %>%
+  mutate(id = 1:n()) %>%
+  spread(rater, UN) %>%
+  select(2:31) %>%
+  data.matrix()
+sad_occc_UN <- epi.occc(sad_UN, na.rm = FALSE, pairs = TRUE)
+sad_icc_UN <- icc(sad_UN, model = "twoway", unit = "single", type = "consistency")
+sad_occc_UN$occc
+sad_icc_UN$value
+```
+
+Linear ordinal
+
+```{r}
+
+sad_LINORD <- dat_cls %>%
+  select(rater, LINORD) %>%
+  group_by(rater) %>%
+  mutate(id = 1:n()) %>%
+  spread(rater, LINORD) %>%
+  select(2:31) %>%
+  data.matrix()
+sad_occc_LINORD <- epi.occc(sad_LINORD, na.rm = FALSE, pairs = TRUE)
+sad_icc_LINORD <- icc(sad_LINORD, model = "twoway", unit = "single", type = "consistency")
+sad_occc_LINORD$occc
+sad_icc_LINORD$value
+```
+
+Linear continuous
+
+```{r}
+
+sad_LINCON <- dat_cls %>%
+  select(rater, LINCON) %>%
+  group_by(rater) %>%
+  mutate(id = 1:n()) %>%
+  spread(rater, LINCON) %>%
+  select(2:31) %>%
+  data.matrix()
+sad_occc_LINCON <- epi.occc(sad_LINCON, na.rm = FALSE, pairs = TRUE)
+sad_icc_LINCON <- icc(sad_LINCON, model = "twoway", unit = "single", type = "consistency")
+sad_occc_LINCON$occc
+sad_icc_LINCON$value
+```
+
+Log ordinal
+
+```{r}
+
+sad_LOGORD <- dat_cls %>%
+  select(rater, LOGORD) %>%
+  group_by(rater) %>%
+  mutate(id = 1:n()) %>%
+  spread(rater, LOGORD) %>%
+  select(2:31) %>%
+  data.matrix()
+sad_occc_LOGORD <- epi.occc(sad_LOGORD, na.rm = FALSE, pairs = TRUE)
+sad_icc_LOGORD <- icc(sad_LOGORD, model = "twoway", unit = "single", type = "consistency")
+sad_occc_LOGORD$occc
+sad_icc_LOGORD$value
+```
+
+
+Log continous
+
+```{r}
+
+sad_LOGCON <- dat_cls %>%
+  select(rater, LOGCON) %>%
+  group_by(rater) %>%
+  mutate(id = 1:n()) %>%
+  spread(rater, LOGCON) %>%
+  select(2:31) %>%
+  data.matrix()
+sad_occc_LOGCON <- epi.occc(sad_LOGCON, na.rm = FALSE, pairs = TRUE)
+sad_icc_LOGCON <- icc(sad_LOGCON, model = "twoway", unit = "single", type = "consistency")
+sad_occc_LOGCON$occc
+sad_icc_LOGCON$value
+```
+
+
+### Reproducibility summary
+
+
+Here is a summary table with the interrater reliability or reproducibility results.
+
+```{r}
+
+Method <- c("sad_UN", "sad_LINCON", "sad_LINORD", "sad_LOGCON", "sad_LOGORD")
+
+OCCC <- c(sad_occc_UN$occc, sad_occc_LINCON$occc, sad_occc_LINORD$occc, sad_occc_LOGCON$occc, sad_occc_LOGORD$occc)
+
+ICC <- c(sad_icc_UN$value, sad_icc_LINCON$value, sad_icc_LINORD$value, sad_icc_LOGCON$value, sad_icc_LOGORD$value)
+
+ICC_l <- c(sad_icc_UN$lbound, sad_icc_LINCON$lbound, sad_icc_LINORD$lbound, sad_icc_LOGCON$lbound, sad_icc_LOGORD$lbound)
+
+
+ICC_u <- c(sad_icc_UN$ubound, sad_icc_LINCON$ubound, sad_icc_LINORD$ubound, sad_icc_LOGCON$ubound, sad_icc_LOGORD$ubound)
+
+table2<- data.frame(Method, OCCC, ICC, ICC_l, ICC_u)
+library(knitr)
+kable(table2)
+
+
+```
