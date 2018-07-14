@@ -1,8 +1,21 @@
-% Data 
+% Raw data 
 
-## Raw data 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache = TRUE)
+```
 
- 
+The data were obtained during the evaluation of four app-embed image-enriched disease scales for aiding visual estimation of Cercospora Leaf Spot severity on table beets. Thirty inexperienced raters assessed, during five rounds, a sample of thirty images with severity, totaling 4,500 estimates. During the first round, the visual estimates of percent affected leaf area were made with no aid. Then, four other estimates were provided using the rating systems of the Estimate app. 
+
+Let's have a look at the raw data, which was organized in the "wide" format where data from each assessment are in a different column. These data will be further reshaped and transformed for the analysis in the [next section](code.html).
+
+```{r message=FALSE, warning=FALSE}
+library(readxl)
+dat_cls <- read_excel("data/data-sad-cls.xlsx", 1)
+dat_cls
+
+```
+
+
 
 
 ## Download 

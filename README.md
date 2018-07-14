@@ -5,7 +5,6 @@ This is a research compendium that contains data, R codes, figures and versions 
 # Manuscript title
 
 
-
 # Authors of this repository
 
 Emerson Del Ponte (delponte@ufv.br)

@@ -3,9 +3,9 @@ output_dir: docs
 output:
   html_document:
     css: style.css
-    theme: flatly
+    theme: cosmo
     df_print: paged
-    highlight: default
+    highlight: textmate
     include:
       after_body: footer.md
     toc: yes
@@ -17,7 +17,7 @@ output:
 bibliography: crossref.bib
 csl: plant-disease.csl
 navbar:
-  title: SAD Cercospora leaf spot
+  title: Estimate App validation
   left:
   - text: About
     icon: fa fa-home
@@ -34,5 +34,5 @@ navbar:
   right:
   - text: source
     icon: fa-github-square
-    href: https://github.com/openplantpathology/paper-sad-cls
+    href: https://github.com/
 
