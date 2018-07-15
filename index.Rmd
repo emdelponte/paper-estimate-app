@@ -3,9 +3,14 @@
 This is a website for a research compendium that describes the data and the R codes used to transform, visualize and analyze data for a manuscript on the evaluation of app-embed rating systems for aiding visual severity estimation. 
 
  
-## Citation
+## Paper citation
 
 > Del Ponte EM, Nelson S, Pethybridge S. Evaluation of App-Embedded Disease Scales for Aiding Visual Severity Estimation of Cercospora Leaf Spot of Table Beet. Under review.
+
+
+## Repository citation
+
+> Emerson M. Del Ponte. (2018, July 15). emdelponte/paper-estimate-app: First release (Version v0.10). Zenodo. http://doi.org/10.5281/zenodo.1312314
 
 
 ## Project team
