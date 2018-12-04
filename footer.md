@@ -1,3 +1,3 @@
 <br><br>
 <hr>
-Developed by Emerson Del Ponte  
+Developed by Emerson Del Ponte.

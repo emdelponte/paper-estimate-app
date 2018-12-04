@@ -1,23 +1,18 @@
 % Analysis code
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache = FALSE)
-```
 
 
 ## Load libraries
 
 ```{r, message=FALSE, warning=FALSE}
 library(plyr) # for data transformation
-library(cowplot) # combining plots
 library(tidyverse) # tidy tools
 library(readxl) # import from excel
 library(epiR) # ccc analysis
 library(ggthemes) # ggplot themes
-library(hrbrthemes) # ggplot theme
 library(irr) # icc analysis
 library(rel) # agreement analysis
-theme_set(theme_ipsum_rc()) # the theme globally
+theme_set(theme_light()) # the theme globally
 ```
 
 
@@ -124,12 +119,14 @@ dat_sad %>%
   filter(assessment == "UN") %>%
   select(rater, actual, estimate) %>%
   ggplot(aes(estimate)) +
-  geom_histogram(bins = 100, color = "white") +
   scale_x_continuous(breaks = seq(0, 100, 5)) +
-  geom_vline(aes(xintercept = actual), linetype = 3, color = "gray", size = 0.5) +
-  scale_fill_few() +
+  #geom_vline(aes(xintercept = actual), linetype = 2, color = "gray80", size = 0.5) +
+  theme_light()+
+  geom_rug(aes(actual))+
+  geom_histogram(bins = 100, color = "white", fill = "gray50") +
+
   labs(x = "Nearest percent unaided estimate", y = "Frequency") +
-  ggsave("figs/knots-unaided.png", width = 7, height = 3)
+  ggsave("figs/figs1.png", width = 7, height = 3, dpi = 300)
 ```
 
 It is apparent that raters tended to round considerably the estimates around a "knot" spaced at 10 percent points. Let's obtain the frequency of the ten most assigned values. 
@@ -144,7 +141,7 @@ dat_sad %>%
   mutate(cum_percent = cumsum(percent))
 ```
 
-Based on the above, ten values accounted for 66% of distinct values. The top five were 10%, 5%, 30%, 20% and 50%. Apparently, raters intuitively used a linear scale to assign severity.
+Based on the above, ten values accounted for 66% of distinct values. The top five were 10%, 5%, 30%, 20% and 50%. Apparently, raters intuitively used a mental linear scale to assign severity.
 
 
 ### Errors
@@ -152,20 +149,20 @@ Based on the above, ten values accounted for 66% of distinct values. The top fiv
 This plot below shows the relationship between the errors of the estimates, in percent points, and the actual severity values. 
 
 ```{r}
-fig1b <- dat_sad %>%
+fig4a <- dat_sad %>%
   filter(assessment == "UN") %>%
   ggplot(aes(actual, error)) +
+   theme_light()+
   theme(legend.position = "none") +
   geom_hline(yintercept = 0) +
   coord_fixed() +
-  geom_point(alpha = 0.75, size = 2) +
+  geom_point(alpha = 0.5, size = 2.5, shape = 16) +
   labs(
     x = "Actual severity (%)",
     y = "Error of estimates (percentage point)"
-  ) +
-  ggsave("figs/fig-unaided-error.png", width = 4, height = 4)
+  ) 
 
-fig1b
+fig4a
 ```
 
 
@@ -178,11 +175,14 @@ Let's now check the distribution of the aided estimates by each of the rating sy
 knots_aid <- dat_sad %>%
   filter(assessment != "UN") %>%
   ggplot(aes(estimate)) +
-  geom_vline(aes(xintercept = actual), linetype = 1, color = "gray", size = 0.5) +
-  geom_histogram(bins = 100, fill = "black") +
+  #geom_vline(aes(xintercept = actual), linetype = 1, color = "gray", size = 0.5) +
+  geom_rug(aes(actual))+
+  geom_histogram(bins = 100, color = "white", fill = "gray50") +
+   theme_light()+
+   facet_wrap(~ assessment, ncol = 1) +
+ labs(x = "Aided Estimate", y = "Frequency")+
   scale_x_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
-  facet_wrap(~ assessment, ncol = 1) +
-  ggsave("figs/knots-aided.png", width = 7, height = 8)
+  ggsave("figs/figs2.png", width = 5, height = 6, dpi = 600)
 ```
 
 <img src = "figs/knots-aided.png">
@@ -230,10 +230,11 @@ dat_sad %>%
   geom_point(alpha = 0.3, size = 2) +
   geom_smooth(color = "orange", size = 1.5, linetype = 1, se = F) +
   geom_hline(yintercept = 0) +
+   theme_light()+
   theme(legend.position = "none") +
   facet_wrap(~ assessment, ncol = 4) +
   labs(y = "Error (percentage point)", x = "Actual severity (%)") +
-  ggsave("figs/fig-aided-error.png", width = 10)
+  ggsave("figs/fig6.png", width = 8, dpi = 600)
 ```
 
 For most cases, overestimation occurred at values lower than 30% actual severity, especially for the aided estimates using the LIN scale and UN estimates. However, when using the HB scale the overestimation was more consistent across the entire severity range.
@@ -261,9 +262,11 @@ p_hb_table <- hb_table %>%
   ggplot(aes(actual_HB, HB, fill = value)) +
   geom_tile() +
   geom_text(aes(label = value), color = "white", size = 3) +
+
   scale_y_continuous(breaks = seq(1, 9, 1)) +
   scale_x_continuous(breaks = seq(1, 9, 1)) +
   scale_fill_gradient(low = "white", high = "black") +
+  theme_few()+
   theme(legend.position = "none") +
   labs(x = "Actual HB class", fill = "Proportion", y = "Estimated HB class")
 p_hb_table
@@ -294,6 +297,7 @@ p_lin_table <- lin_table %>%
   scale_y_continuous(breaks = seq(1, 9, 1)) +
   scale_x_continuous(breaks = seq(1, 9, 1)) +
   scale_fill_gradient(low = "white", high = "black") +
+  theme_few()+
   labs(x = "Actual LIN class", fill = "Proportion", y = "Estimated LIN class")
 
 p_lin_table
@@ -303,11 +307,12 @@ Here we will make a combo plot with the two graphs using the `plot_grid` functio
 
 ```{r message=FALSE, warning=FALSE}
 library(cowplot)
+theme_set(theme_light())
 p1 <- plot_grid(p_hb_table, p_lin_table, align = "hv", ncol = 2, rel_widths = c(1, 1.35), labels = "AUTO")
-ggsave("figs/fig3.png", p1, width = 9)
+ggsave("figs/fig5.png", p1, width = 9)
 ```
 
-<img src = "figs/fig3.png">
+<img src = "figs/fig5.png">
 
 ### Agreement stats
 
@@ -369,6 +374,7 @@ HB_hist <- dat_sad %>%
   select(estimate, estimate_HB) %>%
   gather(class, value, 2) %>%
   ggplot(aes(estimate)) +
+   theme_light()+
   geom_histogram(bins = 100, color = "white") +
   labs(x = "Percent estimate after H-B scale", y = "Frequency") +
   scale_x_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
@@ -387,6 +393,7 @@ LIN_hist <- dat_sad %>%
   geom_histogram(bins = 100, color = "white") +
 
   scale_x_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
+   theme_light()+
   theme(legend.position = "none") +
   labs(x = "Percent estimate after 10% Linear scale", y = "Frequency")
 ```
@@ -396,6 +403,7 @@ The combo plot for the supplemental section of the manuscript.
 
 ```{r}
 library(cowplot)
+theme_set(theme_light())
 p_hist <- plot_grid(HB_hist, LIN_hist, align = "hv", ncol = 1, rel_widths = c(1, 1), labels = "AUTO")
 ggsave("figs/fig4.png", p_hist, width = 6, height = 5)
 p_hist
@@ -659,7 +667,7 @@ sqrt(summary(modelo)$r.squared)
 Now the plot for the manuscript.
 
 ```{r message=FALSE, warning=FALSE}
-UN_CCC %>%
+fig4b <- UN_CCC %>%
   spread(stat, coef) %>%
   ggplot(aes(Cb, r, color = est)) +
   geom_point(size = 4) +
@@ -667,13 +675,20 @@ UN_CCC %>%
   geom_text(aes(label = rater), color = "white", size = 2.5) +
   ylim(.55, 0.96) +
   xlim(.8, 1.01) +
+   theme_light()+
   coord_fixed() +
   labs(color = "Lin's coef.", y = "Pearson's coefficient ", x = "Bias coefficient") +
-  annotate("text", label = "r = 0.95", x = 0.58, y = 0.99, size = 4) +
-  ggsave("figs/ccc_unaided.png", height = 4)
+  annotate("text", label = "r = 0.95", x = 0.58, y = 0.99, size = 4) 
+fig4b
 ```
 
 
+```{r message=FALSE, warning=FALSE}
+library(cowplot)
+theme_set(theme_light())
+fig4 <- plot_grid(fig4a, fig4b, align = "hv", ncol = 2, rel_widths = c(1, 1.44), labels = "AUTO")
+ggsave("figs/fig4.png", fig4, width = 5.5, dpi = 600)
+```
 
 
 
@@ -695,6 +710,8 @@ ccc2$method2 <- ifelse(ccc2$method == "UN", "UNAIDED", "AIDED")
 ```
 
 We want to check whether baseline accuracy influence the results. Let's create a new dataset for the categories or groups of raters according to their baseline accuracy using the `case_when` function again and the `left_join` to combine the new dataset with the one with all variables. 
+
+
 
 ```{r}
 ccc3 <- ccc2 %>%
@@ -738,8 +755,9 @@ ccc5 %>%
   geom_boxplot() +
   facet_wrap(~ baseline_class) +
   labs(x = "Rating system", y = "Lin's CCC") +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ggsave("figs/box_ccc_baseline.png", width = 7, height = 4)
+   theme_light()+
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) +
+  ggsave("figs/fig7.png", width = 7, height = 4)
 ```
 
 
@@ -751,6 +769,7 @@ ccc5 %>%
   geom_boxplot() +
   facet_wrap(~ baseline_class) +
   labs(x = "Rating system", y = "Bias coefficient") +
+   theme_light()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
@@ -760,6 +779,7 @@ Effect on precision by rater group
 ccc5 %>%
   ggplot(aes(method, r)) +
   geom_boxplot() +
+   theme_light()+
   facet_wrap(~ baseline_class) +
   labs(x = "Rating system", y = "Person's coefficient") +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
@@ -1062,6 +1082,4 @@ table2 <- data.frame(Method, OCCC, ICC, ICC_l, ICC_u)
 library(knitr)
 kable(table2)
 ```
-
-
 

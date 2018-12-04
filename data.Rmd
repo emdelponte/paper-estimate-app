@@ -1,8 +1,5 @@
 % Raw data 
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(cache = FALSE)
-```
 
 The data were obtained during the evaluation of four app-embed image-enriched disease scales for aiding visual estimation of Cercospora Leaf Spot severity on table beets. Thirty inexperienced raters assessed, during five rounds, a sample of thirty images with severity, totaling 4,500 estimates. During the first round, the visual estimates of percent affected leaf area were made with no aid. Then, four other estimates were provided using the rating systems of the Estimate app. 
 

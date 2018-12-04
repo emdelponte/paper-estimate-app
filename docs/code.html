@@ -311,13 +311,6 @@ div.tocify {
     R Code
   </a>
 </li>
-<li>
-  <a href="manuscript.html">
-    <span class="fa fa fa fa-file-text-o"></span>
-     
-    Manuscript
-  </a>
-</li>
       </ul>
       <ul class="nav navbar-nav navbar-right">
         <li>
@@ -344,15 +337,13 @@ div.tocify {
 <div id="load-libraries" class="section level2">
 <h2>Load libraries</h2>
 <pre class="r"><code>library(plyr) # for data transformation
-library(cowplot) # combining plots
 library(tidyverse) # tidy tools
 library(readxl) # import from excel
 library(epiR) # ccc analysis
 library(ggthemes) # ggplot themes
-library(hrbrthemes) # ggplot theme
 library(irr) # icc analysis
 library(rel) # agreement analysis
-theme_set(theme_ipsum_rc()) # the theme globally</code></pre>
+theme_set(theme_light()) # the theme globally</code></pre>
 </div>
 <div id="data-preparation" class="section level2">
 <h2>Data preparation</h2>
@@ -449,12 +440,14 @@ dat_sad %&gt;%
   filter(assessment == &quot;UN&quot;) %&gt;%
   select(rater, actual, estimate) %&gt;%
   ggplot(aes(estimate)) +
-  geom_histogram(bins = 100, color = &quot;white&quot;) +
   scale_x_continuous(breaks = seq(0, 100, 5)) +
-  geom_vline(aes(xintercept = actual), linetype = 3, color = &quot;gray&quot;, size = 0.5) +
-  scale_fill_few() +
+  #geom_vline(aes(xintercept = actual), linetype = 2, color = &quot;gray80&quot;, size = 0.5) +
+  theme_light()+
+  geom_rug(aes(actual))+
+  geom_histogram(bins = 100, color = &quot;white&quot;, fill = &quot;gray50&quot;) +
+
   labs(x = &quot;Nearest percent unaided estimate&quot;, y = &quot;Frequency&quot;) +
-  ggsave(&quot;figs/knots-unaided.png&quot;, width = 7, height = 3)</code></pre>
+  ggsave(&quot;figs/figs1.png&quot;, width = 7, height = 3, dpi = 300)</code></pre>
 <p><img src="code_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 <p>It is apparent that raters tended to round considerably the estimates around a “knot” spaced at 10 percent points. Let’s obtain the frequency of the ten most assigned values.</p>
 <pre class="r"><code>library(janitor)
@@ -468,25 +461,25 @@ dat_sad %&gt;%
 {"columns":[{"label":["estimate"],"name":[1],"type":["dbl"],"align":["right"]},{"label":["n"],"name":[2],"type":["dbl"],"align":["right"]},{"label":["percent"],"name":[3],"type":["dbl"],"align":["right"]},{"label":["cum_percent"],"name":[4],"type":["dbl"],"align":["right"]}],"data":[{"1":"10.00","2":"93","3":"0.103333333","4":"0.1033333"},{"1":"5.00","2":"91","3":"0.101111111","4":"0.2044444"},{"1":"30.00","2":"64","3":"0.071111111","4":"0.2755556"},{"1":"20.00","2":"63","3":"0.070000000","4":"0.3455556"},{"1":"50.00","2":"58","3":"0.064444444","4":"0.4100000"},{"1":"15.00","2":"55","3":"0.061111111","4":"0.4711111"},{"1":"40.00","2":"51","3":"0.056666667","4":"0.5277778"},{"1":"25.00","2":"43","3":"0.047777778","4":"0.5755556"},{"1":"1.00","2":"42","3":"0.046666667","4":"0.6222222"},{"1":"60.00","2":"36","3":"0.040000000","4":"0.6622222"},{"1":"2.00","2":"35","3":"0.038888889","4":"0.7011111"},{"1":"70.00","2":"32","3":"0.035555556","4":"0.7366667"},{"1":"35.00","2":"27","3":"0.030000000","4":"0.7666667"},{"1":"80.00","2":"27","3":"0.030000000","4":"0.7966667"},{"1":"3.00","2":"20","3":"0.022222222","4":"0.8188889"},{"1":"7.00","2":"20","3":"0.022222222","4":"0.8411111"},{"1":"8.00","2":"20","3":"0.022222222","4":"0.8633333"},{"1":"45.00","2":"19","3":"0.021111111","4":"0.8844444"},{"1":"55.00","2":"17","3":"0.018888889","4":"0.9033333"},{"1":"75.00","2":"17","3":"0.018888889","4":"0.9222222"},{"1":"12.00","2":"12","3":"0.013333333","4":"0.9355556"},{"1":"65.00","2":"12","3":"0.013333333","4":"0.9488889"},{"1":"95.00","2":"8","3":"0.008888889","4":"0.9577778"},{"1":"85.00","2":"7","3":"0.007777778","4":"0.9655556"},{"1":"90.00","2":"7","3":"0.007777778","4":"0.9733333"},{"1":"4.00","2":"5","3":"0.005555556","4":"0.9788889"},{"1":"100.00","2":"4","3":"0.004444444","4":"0.9833333"},{"1":"0.50","2":"3","3":"0.003333333","4":"0.9866667"},{"1":"6.00","2":"2","3":"0.002222222","4":"0.9888889"},{"1":"11.00","2":"2","3":"0.002222222","4":"0.9911111"},{"1":"0.01","2":"1","3":"0.001111111","4":"0.9922222"},{"1":"3.50","2":"1","3":"0.001111111","4":"0.9933333"},{"1":"9.00","2":"1","3":"0.001111111","4":"0.9944444"},{"1":"17.00","2":"1","3":"0.001111111","4":"0.9955556"},{"1":"18.00","2":"1","3":"0.001111111","4":"0.9966667"},{"1":"22.00","2":"1","3":"0.001111111","4":"0.9977778"},{"1":"72.00","2":"1","3":"0.001111111","4":"0.9988889"},{"1":"87.00","2":"1","3":"0.001111111","4":"1.0000000"}],"options":{"columns":{"min":{},"max":[10]},"rows":{"min":[10],"max":[10]},"pages":{}}}
   </script>
 </div>
-<p>Based on the above, ten values accounted for 66% of distinct values. The top five were 10%, 5%, 30%, 20% and 50%. Apparently, raters intuitively used a linear scale to assign severity.</p>
+<p>Based on the above, ten values accounted for 66% of distinct values. The top five were 10%, 5%, 30%, 20% and 50%. Apparently, raters intuitively used a mental linear scale to assign severity.</p>
 </div>
 <div id="errors" class="section level3">
 <h3>Errors</h3>
 <p>This plot below shows the relationship between the errors of the estimates, in percent points, and the actual severity values.</p>
-<pre class="r"><code>fig1b &lt;- dat_sad %&gt;%
+<pre class="r"><code>fig4a &lt;- dat_sad %&gt;%
   filter(assessment == &quot;UN&quot;) %&gt;%
   ggplot(aes(actual, error)) +
+   theme_light()+
   theme(legend.position = &quot;none&quot;) +
   geom_hline(yintercept = 0) +
   coord_fixed() +
-  geom_point(alpha = 0.75, size = 2) +
+  geom_point(alpha = 0.5, size = 2.5, shape = 16) +
   labs(
     x = &quot;Actual severity (%)&quot;,
     y = &quot;Error of estimates (percentage point)&quot;
-  ) +
-  ggsave(&quot;figs/fig-unaided-error.png&quot;, width = 4, height = 4)
+  ) 
 
-fig1b</code></pre>
+fig4a</code></pre>
 <p><img src="code_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 </div>
 <div id="aided" class="section level3">
@@ -495,11 +488,15 @@ fig1b</code></pre>
 <pre class="r"><code>knots_aid &lt;- dat_sad %&gt;%
   filter(assessment != &quot;UN&quot;) %&gt;%
   ggplot(aes(estimate)) +
-  geom_vline(aes(xintercept = actual), linetype = 1, color = &quot;gray&quot;, size = 0.5) +
-  geom_histogram(bins = 100, fill = &quot;black&quot;) +
+  #geom_vline(aes(xintercept = actual), linetype = 1, color = &quot;gray&quot;, size = 0.5) +
+  geom_rug(aes(actual))+
+  geom_histogram(bins = 100, color = &quot;white&quot;, fill = &quot;gray50&quot;) +
+   theme_light()+
+   facet_wrap(~ assessment, ncol = 1) +
+ labs(x = &quot;Aided Estimate&quot;, y = &quot;Frequency&quot;)+
   scale_x_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
-  facet_wrap(~ assessment, ncol = 1) +
-  ggsave(&quot;figs/knots-aided.png&quot;, width = 7, height = 8)</code></pre>
+  ggsave(&quot;figs/figs2.png&quot;, width = 5, height = 6, dpi = 600)</code></pre>
+<pre><code>## Warning: Removed 8 rows containing missing values (geom_bar).</code></pre>
 <p><img src = "figs/knots-aided.png"></p>
 <p>As expected, when using the H-B scale, all mid-point severity values appeared with higher frequency for the 4.5% scores. This was expected given the higher frequency of actual values at the lower end of the percent scale.</p>
 <p>For the two two-stage assessment, it seems knots were still preferred by the raters for the range of values within the category. Let’s get the frequency of the ten most assigned values after selecting a score following the log aor the linear interval.</p>
@@ -539,10 +536,11 @@ dat_sad %&gt;%
   geom_point(alpha = 0.3, size = 2) +
   geom_smooth(color = &quot;orange&quot;, size = 1.5, linetype = 1, se = F) +
   geom_hline(yintercept = 0) +
+   theme_light()+
   theme(legend.position = &quot;none&quot;) +
   facet_wrap(~ assessment, ncol = 4) +
   labs(y = &quot;Error (percentage point)&quot;, x = &quot;Actual severity (%)&quot;) +
-  ggsave(&quot;figs/fig-aided-error.png&quot;, width = 10)</code></pre>
+  ggsave(&quot;figs/fig6.png&quot;, width = 8, dpi = 600)</code></pre>
 <p><img src="code_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
 <p>For most cases, overestimation occurred at values lower than 30% actual severity, especially for the aided estimates using the LIN scale and UN estimates. However, when using the HB scale the overestimation was more consistent across the entire severity range.</p>
 </div>
@@ -568,9 +566,11 @@ hb_table</code></pre>
   ggplot(aes(actual_HB, HB, fill = value)) +
   geom_tile() +
   geom_text(aes(label = value), color = &quot;white&quot;, size = 3) +
+
   scale_y_continuous(breaks = seq(1, 9, 1)) +
   scale_x_continuous(breaks = seq(1, 9, 1)) +
   scale_fill_gradient(low = &quot;white&quot;, high = &quot;black&quot;) +
+  theme_few()+
   theme(legend.position = &quot;none&quot;) +
   labs(x = &quot;Actual HB class&quot;, fill = &quot;Proportion&quot;, y = &quot;Estimated HB class&quot;)
 p_hb_table</code></pre>
@@ -597,15 +597,17 @@ lin_table</code></pre>
   scale_y_continuous(breaks = seq(1, 9, 1)) +
   scale_x_continuous(breaks = seq(1, 9, 1)) +
   scale_fill_gradient(low = &quot;white&quot;, high = &quot;black&quot;) +
+  theme_few()+
   labs(x = &quot;Actual LIN class&quot;, fill = &quot;Proportion&quot;, y = &quot;Estimated LIN class&quot;)
 
 p_lin_table</code></pre>
 <p><img src="code_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 <p>Here we will make a combo plot with the two graphs using the <code>plot_grid</code> function of the <code>cowplot</code> package.</p>
 <pre class="r"><code>library(cowplot)
+theme_set(theme_light())
 p1 &lt;- plot_grid(p_hb_table, p_lin_table, align = &quot;hv&quot;, ncol = 2, rel_widths = c(1, 1.35), labels = &quot;AUTO&quot;)
-ggsave(&quot;figs/fig3.png&quot;, p1, width = 9)</code></pre>
-<p><img src = "figs/fig3.png"></p>
+ggsave(&quot;figs/fig5.png&quot;, p1, width = 9)</code></pre>
+<p><img src = "figs/fig5.png"></p>
 <div id="agreement-stats" class="section level3">
 <h3>Agreement stats</h3>
 <p>Let’s compute a simple percentage agreement between the estimated and actual ordinal scale values</p>
@@ -686,6 +688,7 @@ agree(LIN, tolerance = 2)</code></pre>
   select(estimate, estimate_HB) %&gt;%
   gather(class, value, 2) %&gt;%
   ggplot(aes(estimate)) +
+   theme_light()+
   geom_histogram(bins = 100, color = &quot;white&quot;) +
   labs(x = &quot;Percent estimate after H-B scale&quot;, y = &quot;Frequency&quot;) +
   scale_x_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
@@ -701,12 +704,17 @@ agree(LIN, tolerance = 2)</code></pre>
   geom_histogram(bins = 100, color = &quot;white&quot;) +
 
   scale_x_continuous(breaks = seq(0, 100, 5), limits = c(0, 100)) +
+   theme_light()+
   theme(legend.position = &quot;none&quot;) +
   labs(x = &quot;Percent estimate after 10% Linear scale&quot;, y = &quot;Frequency&quot;)</code></pre>
 <p>The combo plot for the supplemental section of the manuscript.</p>
 <pre class="r"><code>library(cowplot)
-p_hist &lt;- plot_grid(HB_hist, LIN_hist, align = &quot;hv&quot;, ncol = 1, rel_widths = c(1, 1), labels = &quot;AUTO&quot;)
-ggsave(&quot;figs/fig4.png&quot;, p_hist, width = 6, height = 5)
+theme_set(theme_light())
+p_hist &lt;- plot_grid(HB_hist, LIN_hist, align = &quot;hv&quot;, ncol = 1, rel_widths = c(1, 1), labels = &quot;AUTO&quot;)</code></pre>
+<pre><code>## Warning: Removed 2 rows containing missing values (geom_bar).
+
+## Warning: Removed 2 rows containing missing values (geom_bar).</code></pre>
+<pre class="r"><code>ggsave(&quot;figs/fig4.png&quot;, p_hist, width = 6, height = 5)
 p_hist</code></pre>
 <p><img src="code_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 </div>
@@ -805,7 +813,7 @@ modelo &lt;- UN_CCC2 %&gt;%
 sqrt(summary(modelo)$r.squared)</code></pre>
 <pre><code>## [1] 0.9564612</code></pre>
 <p>Now the plot for the manuscript.</p>
-<pre class="r"><code>UN_CCC %&gt;%
+<pre class="r"><code>fig4b &lt;- UN_CCC %&gt;%
   spread(stat, coef) %&gt;%
   ggplot(aes(Cb, r, color = est)) +
   geom_point(size = 4) +
@@ -813,11 +821,16 @@ sqrt(summary(modelo)$r.squared)</code></pre>
   geom_text(aes(label = rater), color = &quot;white&quot;, size = 2.5) +
   ylim(.55, 0.96) +
   xlim(.8, 1.01) +
+   theme_light()+
   coord_fixed() +
   labs(color = &quot;Lin&#39;s coef.&quot;, y = &quot;Pearson&#39;s coefficient &quot;, x = &quot;Bias coefficient&quot;) +
-  annotate(&quot;text&quot;, label = &quot;r = 0.95&quot;, x = 0.58, y = 0.99, size = 4) +
-  ggsave(&quot;figs/ccc_unaided.png&quot;, height = 4)</code></pre>
+  annotate(&quot;text&quot;, label = &quot;r = 0.95&quot;, x = 0.58, y = 0.99, size = 4) 
+fig4b</code></pre>
 <p><img src="code_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+<pre class="r"><code>library(cowplot)
+theme_set(theme_light())
+fig4 &lt;- plot_grid(fig4a, fig4b, align = &quot;hv&quot;, ncol = 2, rel_widths = c(1, 1.44), labels = &quot;AUTO&quot;)
+ggsave(&quot;figs/fig4.png&quot;, fig4, width = 5.5, dpi = 600)</code></pre>
 </div>
 </div>
 <div id="hypothesis-tests" class="section level2">
@@ -860,25 +873,28 @@ library(dplyr) # to avoid conflict we reload dplyr</code></pre>
   geom_boxplot() +
   facet_wrap(~ baseline_class) +
   labs(x = &quot;Rating system&quot;, y = &quot;Lin&#39;s CCC&quot;) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
-  ggsave(&quot;figs/box_ccc_baseline.png&quot;, width = 7, height = 4)</code></pre>
-<p><img src="code_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+   theme_light()+
+  theme(axis.text.x = element_text(angle = 0, hjust = 1)) +
+  ggsave(&quot;figs/fig7.png&quot;, width = 7, height = 4)</code></pre>
+<p><img src="code_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
 <p>Effect of baseline accuracy on bias coefficient</p>
 <pre class="r"><code>ccc5 %&gt;%
   ggplot(aes(method, Cb)) +
   geom_boxplot() +
   facet_wrap(~ baseline_class) +
   labs(x = &quot;Rating system&quot;, y = &quot;Bias coefficient&quot;) +
+   theme_light()+
   theme(axis.text.x = element_text(angle = 45, hjust = 1))</code></pre>
-<p><img src="code_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+<p><img src="code_files/figure-html/unnamed-chunk-45-1.png" width="672" /></p>
 <p>Effect on precision by rater group</p>
 <pre class="r"><code>ccc5 %&gt;%
   ggplot(aes(method, r)) +
   geom_boxplot() +
+   theme_light()+
   facet_wrap(~ baseline_class) +
   labs(x = &quot;Rating system&quot;, y = &quot;Person&#39;s coefficient&quot;) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))</code></pre>
-<p><img src="code_files/figure-html/unnamed-chunk-45-1.png" width="672" /></p>
+<p><img src="code_files/figure-html/unnamed-chunk-46-1.png" width="672" /></p>
 <div id="lins-ccc" class="section level3">
 <h3>Lin’s CCC</h3>
 <p>We are now ready to fit the mixed model to Lin’s statistics, starting with the overall accuracy.</p>
@@ -924,8 +940,11 @@ Anova(mix_pc)</code></pre>
   </script>
 </div>
 <p>Now the <code>lsmeans</code> estimates using <code>emmeans</code> package.</p>
-<pre class="r"><code>library(emmeans)
-mean_pc &lt;- emmeans(mix_pc, ~ method)
+<pre class="r"><code>library(emmeans)</code></pre>
+<pre><code>## NOTE: As of emmeans versions &gt; 1.2.3,
+##       The &#39;cld&#39; function will be deprecated in favor of &#39;CLD&#39;.
+##       You may use &#39;cld&#39; only if you have package:multcomp attached.</code></pre>
+<pre class="r"><code>mean_pc &lt;- emmeans(mix_pc, ~ method)
 df_pc &lt;- cld(mean_pc)
 df_pc &lt;- df_pc %&gt;%
   select(method, emmean, .group) %&gt;%
@@ -1579,7 +1598,7 @@ kable(table2)</code></pre>
 
 <br><br>
 <hr>
-Developed by Emerson Del Ponte
+Developed by Emerson Del Ponte.
 
 
 </div>
