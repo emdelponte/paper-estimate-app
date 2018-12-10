@@ -1,7 +1,9 @@
 % Raw data 
 
 
-The data were obtained during the evaluation of four app-embed image-enriched disease scales for aiding visual estimation of Cercospora Leaf Spot severity on table beets. Thirty inexperienced raters assessed, during five rounds, a sample of thirty images with severity, totaling 4,500 estimates. During the first round, the visual estimates of percent affected leaf area were made with no aid. Then, four other estimates were provided using the rating systems of the Estimate app. 
+The data were obtained during the evaluation of four app-embed image-enriched disease scales for aiding visual estimation of Cercospora Leaf Spot severity on table beets. Thirty inexperienced raters assessed, during five rounds, a sample of thirty images with severity, totaling 4,500 visual estimates.  
+
+During the first round, the visual estimates of percent affected leaf area were made with no aid. Then, four other estimates were provided using the rating systems of the Estimate app. 
 
 Let's have a look at the raw data, which was organized in the "wide" format where data from each assessment are in a different column. These data will be further reshaped and transformed for the analysis in the [next section](code.html).
 
@@ -17,9 +19,9 @@ dat_cls
 
 ## Download 
 
-> The data are stored permanently at the Open Science Framework servers
+The data are stored permanently at the Open Science Framework servers.   
 
+Citation: 
 
-Identifier: 
+> Del Ponte, E. M. (2018, December 4). Research compendium: Evaluation of App-Embedded Disease Scales for Aiding Visual Severity Estimation of Cercospora Leaf Spot of Table Beet. [https://doi.org/10.17605/osf.io/34nzc](https://doi.org/10.17605/osf.io/34nzc)
 
-Citation:

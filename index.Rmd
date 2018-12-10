@@ -1,24 +1,39 @@
 % About
 
-This is a website for a research compendium that describes the data and the R codes used to transform, visualize and analyze data for a manuscript on the evaluation of app-embed rating systems for aiding visual severity estimation. 
 
- 
-## Paper citation
+This website is the interface for a research compendium that describes the data and the R codes used to transform, visualize and analyze the data published in a manuscript on the evaluation of app-embed rating systems for aiding visual severity estimation. All files for producing this documentation are stored permanently at the Open Science Framework that integrates with a repository on GitHub.
 
-> Del Ponte EM, Nelson S, Pethybridge S. Evaluation of App-Embedded Disease Scales for Aiding Visual Severity Estimation of Cercospora Leaf Spot of Table Beet. Under review.
+> Del Ponte, E. M. Research compendium: Evaluation of App-Embedded Disease Scales for Aiding Visual Severity Estimation of Cercospora Leaf Spot of Table Beet. [https://doi.org/10.17605/osf.io/34nzc](https://doi.org/10.17605/osf.io/34nzc)
 
+GitHub repository
 
-## Repository citation
-
-> Emerson M. Del Ponte. (2018, July 15). emdelponte/paper-estimate-app: First release (Version v0.10). Zenodo. http://doi.org/10.5281/zenodo.1312314
+> https://github.com/emdelponte/paper-estimate-app
 
 
-## Project team
+## Download paper
 
-Emerson M. Del Ponte  
-Sarah Pethybridge  
-Scott Nelson  
+The paper on the evaluation of the different systems in Estimate was accepted by Plant Disease and published online early on November 30th.
 
+> Del Ponte EM, Nelson SC, Pethybridge SJ. Evaluation of App-Embedded Disease Scales for Aiding Visual Severity Estimation of Cercospora Leaf Spot of Table Beet. Plant Disease. [Online First 2018 Nov](https://apsjournals.apsnet.org/doi/abs/10.1094/PDIS-10-18-1718-RE). DOI 10.1094/PDIS-10-18-1718-RE
+
+
+The publication on the App can be found here:
+[https://apsjournals.apsnet.org/doi/10.1094/PDIS-07-17-1094-SR](https://apsjournals.apsnet.org/doi/10.1094/PDIS-07-17-1094-SR)
+
+
+
+## Download App
+
+[Estimate - disease severity](https://itunes.apple.com/us/app/estimate-disease-severity/id1193605571?mt=8)
+
+
+## Related stories
+
+[iPad app lets plant specialists assess disease severity](http://news.cornell.edu/stories/2017/03/ipad-app-lets-plant-specialists-assess-disease-severity)  
+
+[Estimate - lab post](http://blogs.cornell.edu/pethybridgelab/estimate/)
+
+[App advice](https://appadvice.com/app/estimate-disease-severity/1193605571)
 
 
 ## Licences

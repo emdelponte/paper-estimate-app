@@ -1,6 +1,15 @@
 % Analysis code
 
 
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  comment = "##",
+  R.options = list(width = 60)
+)
+```
 
 ## Load libraries
 
@@ -20,7 +29,7 @@ theme_set(theme_light()) # the theme globally
 
 ### Import 
 
-We will import the raw data stored in a `xlsx` file using the `read_excel` function of the `readxl` package. 
+Import the raw data stored in a `xlsx` file using the `read_excel` function of the `readxl` package. 
 
 ```{r message=FALSE, warning=FALSE}
 dat_cls <- read_excel("data/data-sad-cls.xlsx", 1)
@@ -28,7 +37,13 @@ dat_cls <- read_excel("data/data-sad-cls.xlsx", 1)
 
 ### Reshape 
 
-We will reshape the data from the wide (rating systems in different colums) to the long  format where each row is an observation, or a leaf in our case. There will be three response variables to focus on: actual, estimate and error of the estimate (estimate - actual). The latter which will be created below using the `mutate` function.
+We need to reshape the data from the wide (rating systems in different columns) to the long  format where each row is an observation, or a leaf in our case. There are three response variables of interest: 
+
+- actual severity
+- estimate of severity using the different systems
+- error of the estimates (estimate - actual). 
+
+The error variable is created below using the `mutate` function.
 
 ```{r}
 dat_sad <- dat_cls %>%
@@ -38,9 +53,11 @@ dat_sad <- dat_cls %>%
 dat_sad
 ```
 
+
+
 ### Transform
 
-Since we are using ordinal scales like Horsfall-Barrat (HB) and a 10% linear interval scale (LIN), we may convert the actual and estimates of severity to the corresponding ordinal value. By doing this we can check later the errors associated with assigning a wrong score. The new variables will be named: actual_HB, actual_LIN, estimate_HB and estimate_LI`. The `case_when` function is very handy for this task. 
+Since we are using ordinal scales like Horsfall-Barrat (HB) and a 10% linear interval scale (LIN), we need convert the actual and estimates of severity to the corresponding ordinal value. By doing this we can inspect errors associated with the assignment of a wrong score. The new variables will be named: actual_HB, actual_LIN, estimate_HB and estimate_LI`. The `case_when` function is very handy for this task. 
 
 
 ```{r}
@@ -104,11 +121,12 @@ dat_sad <- dat_sad %>%
 
 ## Visualize
 
-We will apply a range of techniques to visualize the data from all assessment rounds. Firstly, explore data for the unaided estimates to check the variability in the innate ability of the raters and error types.
+We will make use of a range of techniques to visualize the data from all assessment rounds. Firstly, let's explore data for the unaided estimates to check the variability in the innate ability of the raters and types of errors.
+
 
 #### Unaided 
 
-In this assessment, raters provided direct estimates of percent severity without any aid, only based on their perception of the percent diseased leaf area. Let's inspect the distribution of the values for the unaided estimates of severity along the range of percent scale for all raters combined.
+In the unaided assessment the raters provided direct estimates of percent severity without any aid, but only based on their perception of the percent diseased leaf area. Let's inspect the distribution of the values for the unaided estimates of severity across the range of percent scale for all raters combined. Compare them with the actual severity depicted as rugs at the x scale.
 
 ```{r}
 actual <- dat_cls %>%
@@ -129,7 +147,7 @@ dat_sad %>%
   ggsave("figs/figs1.png", width = 7, height = 3, dpi = 300)
 ```
 
-It is apparent that raters tended to round considerably the estimates around a "knot" spaced at 10 percent points. Let's obtain the frequency of the ten most assigned values. 
+It is quite apparent that raters tended to round the estimates around a "knot" spaced at 10 percent points. Let's calculate the frequency of the ten most assigned values. The *janitor* package is useful to get the percent as well as the cumulative percent for each value, ordered from high to low.
 
 
 ```{r}
@@ -141,12 +159,12 @@ dat_sad %>%
   mutate(cum_percent = cumsum(percent))
 ```
 
-Based on the above, ten values accounted for 66% of distinct values. The top five were 10%, 5%, 30%, 20% and 50%. Apparently, raters intuitively used a mental linear scale to assign severity.
+Based on the above, ten values accounted for 66% of the assigned values. The top five were 10%, 5%, 30%, 20% and 50%. Apparently, raters intuitively used a mental linear scale to assign severity.
 
 
 ### Errors
 
-This plot below shows the relationship between the errors of the estimates, in percent points, and the actual severity values. 
+The plot below shows the relationship between the errors of the estimates, in percent points, and the actual severity values. 
 
 ```{r}
 fig4a <- dat_sad %>%
@@ -168,7 +186,7 @@ fig4a
 
 ### Aided 
 
-Let's now check the distribution of the aided estimates by each of the rating systems.
+Let's now check the distribution of the aided estimates for each of the aid systems.
 
 
 ```{r}
@@ -187,11 +205,11 @@ knots_aid <- dat_sad %>%
 
 <img src = "figs/knots-aided.png">
 
-As expected, when using the H-B scale, all mid-point severity values appeared with higher frequency for the 4.5% scores. This was expected given the higher frequency of actual values at the lower end of the percent scale.
+When using the H-B scale, all mid-point severity values showed higher frequency for the 4.5% scores. This was expected given the higher frequency of actual values at the lower end of the percent scale.
 
-For the two two-stage assessment, it seems knots were still preferred by the raters for the range of values within the category. Let's get the frequency of the ten most assigned values after selecting a score following the log aor the linear interval. 
+For the two two-stage assessment, it seems the knots were still preferred by the raters for the range of values within the category. Let's get the frequency of the ten most assigned values after selecting a score following the log for the linear interval. 
 
-First, the log interval. The `tabyl` function of the `janitor` package provides a nice output.
+First, the log interval scale. The `tabyl` function of the `janitor` package provides a nice output.
 
 ```{r}
 library(janitor)
@@ -205,7 +223,7 @@ dat_sad %>%
 
 In fact, more than fifty percent of the severity values were assigned to only ten values, which are mostly in the middle of the interval. 
 
-Now for the linear scale.
+Now frequency of estimates using the linear scale.
 
 ```{r}
 library(janitor)
@@ -217,7 +235,7 @@ dat_sad %>%
   head(10)
 ```
 
-Again, raters tend to round their estimates to a knot or the score of the linear interval scale. Seventy percent of the estimates were made of only 10 values, with 50%, 5%, 10%, 2%, 20% and 40% contributing to 50% of the estimates. Of those, only 2% and 5% are not interval limits.
+Again, raters tend to round their estimates to a knot or the score of the linear interval scale. Seventy percent of the estimates were comprised of 10 values, with 50%, 5%, 10%, 2%, 20% and 40% contributing to 50% of the estimates. Of those, only 2% and 5% are not cut-off values.
 
 
 
@@ -241,7 +259,7 @@ For most cases, overestimation occurred at values lower than 30% actual severity
 
 ## Ordinal data
 
-Now let's see the error related to ordinal scales. First, we will summarize the frequency of correct assignment. Then, a build contigency table for the estimated versus actual scores and count the proportion of data on the correct class and those nearby.
+Now let's see the errors of estimates when using ordinal scales. First, we will summarize the frequency of the correct assignment. Then, we build a contingency table for the estimated versus actual scores and count the proportion of data on the correct class and those nearby.
 
 ```{r}
 
@@ -273,7 +291,7 @@ p_hb_table
 ```
 
 
-Now, we do the same for the LIN scale.
+Now, we repeat the procedure for the LIN scale.
 
 ```{r}
 lin_table <- dat_sad %>%
@@ -314,10 +332,11 @@ ggsave("figs/fig5.png", p1, width = 9)
 
 <img src = "figs/fig5.png">
 
+
 ### Agreement stats
 
 
-Let's compute a simple  percentage agreement between the estimated and actual ordinal scale values
+Here will compute a simple percentage agreement and a weighted Kappa statistics (for ordered categories with quadratic weights) between the estimated and actual ordinal categories.
 
 #### HB 
 
@@ -331,10 +350,10 @@ library(irr)
 agree(HB, tolerance = 0)
 ```
 
-Weighted Kappa
+Weighted Kappa statistics is calculated using the *rel* package.
+
 
 ```{r}
-
 # weighted Kappa for ordered categories with quadratic weights
 library(rel)
 ckap(weight = "quadratic", data = HB)
@@ -364,7 +383,7 @@ ckap(weight = "quadratic", data = LIN)
 
 ## Two-stage estimation
 
-Now we want to see the distribution of the severity values within each of the chosen scores. The goal is to check wether there was a tendency to assign specific values. 
+Now we want to see the distribution of the severity values (second step) assigned within each score chosen in the first step. The goal is to check whether there was a tendency to assign specific values. 
 
 ### HB 
 
@@ -414,7 +433,10 @@ p_hist
 
 ### Lin's statistics 
 
-The Lin's concordance correlation coefficient provides a measure of overall accuracy and its components such as bias coefficient and precision. We calculate the statistics for each of the five assessment rounds.
+The Lin's concordance correlation coefficient provides a measure of overall accuracy which takes into account bias correction (closeness to the actual value) and precision (variability in the estimates). Bias correction is calculated from two bias measures: constant bias (location-shift) and systematic bias (scale-shift). The precision is the Pearson's correlation coefficient. The concordance correlation (CCC) is the product of bias correction and precision.
+
+We will use the `epi.ccc` function of the *epiR*  package to obtain the CCC statistics for each of the five assessments.
+
 
 #### Unaided
 
@@ -620,7 +642,7 @@ ccc_all <- rbind(
 ccc_all
 ```
 
-Note that the data in `ccc_all` are in the wide format, where each statistics is shown in a different colum. We will change it to the long format using the `gather` function.
+Note that the data in `ccc_all` are in the wide format, where each statistics is shown in a different column. We will change it to the long format using the `gather` function.
 
 
 ```{r}
@@ -630,7 +652,7 @@ ccc <- ccc_all %>%
 
 ### Baseline accuracy
 
-We will produce a plot and study the relationship between the bias coefficient and the Pearson's coefficient for the unaided estimates. We want to depict the differences in accuracy among the raters while visualizing the three coefficients, including overall accuracy or the Lin's concordance coefficient.
+We will produce a plot to depict the relationship between the bias coefficient and the Pearson's coefficient for the unaided estimates. We want to depict the differences in accuracy among the raters while visualizing the three coefficients, including the concordance correlation.
 
 We will filter the `UN` estimates and not use the two components of bias.
 
@@ -694,11 +716,11 @@ ggsave("figs/fig4.png", fig4, width = 5.5, dpi = 600)
 
 ## Hypothesis tests
 
-We want to statistically compare CCC statistics among the four rating systems. We want to consider raters as a random sample of all raters and make inferences back to the population. For such, we may fit a multi-level (mixed) model using the *lme4* package and compare means *lsmeans* package. 
+Here our goal is to compare CCC statistics among the four rating systems. We will assume the raters used in the study constitute a random sample of raters with different abilities for estimating disease severity. We will fit a multi-level (mixed) model using the *lme4* package and compare means using the *emmeans* package. 
 
-In the model, rating systems are considered fixed effects and raters are considered random effects. A dummy variable representing unaided and aided assessment was created and added as random effects to account for the dependency, or the same raters assessing unaided and aided by any means. 
+In the model, the rating systems are fixed effects and raters are random effects. A dummy variable representing unaided and aided assessment was created and added as random effects to account for the dependency because the same raters repeated the assessment based on the different systems.
 
-We need to prepare the data for this analysis. First, reshape data to the wide format to fit the model separately for each Lin's CCC component. We will also create the variable with the names of the methods.
+We need to prepare the data for this analysis. First, let's reshape the data to  wide format so we can fit the model separately for each Lin's CCC statistics. We will also create the variable with the names of the methods.
 
 ```{r}
 ccc2 <- ccc %>%
@@ -709,7 +731,7 @@ ccc2 <- ccc %>%
 ccc2$method2 <- ifelse(ccc2$method == "UN", "UNAIDED", "AIDED")
 ```
 
-We want to check whether baseline accuracy influence the results. Let's create a new dataset for the categories or groups of raters according to their baseline accuracy using the `case_when` function again and the `left_join` to combine the new dataset with the one with all variables. 
+We want to check whether baseline accuracy influence the results. Let's create a new data set for the categories or groups of raters according to their baseline accuracy using the `case_when` function again and the `left_join` to combine the new data set with the one with all variables. 
 
 
 
@@ -785,13 +807,11 @@ ccc5 %>%
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
-```{r}
 
-```
 
 ### Lin's CCC
 
-We are now ready to fit the mixed model to Lin's statistics, starting with the overall accuracy.
+We are now ready to fit the mixed model to Lin's statistics data.
 
 
 ```{r message=FALSE, warning=FALSE}
@@ -910,8 +930,10 @@ kable(table1)
 ```
 
 
-### Effec of baseline 
+### Effect of baseline accuracy
 
+
+Here we want to check whether the effect of the aid was affected by the baseline accuracy of the raters, split into different groups.
 
 ```{r}
 # pc
@@ -1063,7 +1085,7 @@ sad_icc_estimate_HB$est
 
 ### Summary 
 
-Here is a summary table with the interrater reliability or reproducibility results.
+Here is a summary table with the inter-rater reliability or reproducibility results.
 
 ```{r}
 
@@ -1079,7 +1101,6 @@ ICC_l <- c(sad_icc_UN$lb, sad_icc_estimate_LIN2$lb, sad_icc_estimate_LIN$lb, sad
 ICC_u <- c(sad_icc_UN$ub, sad_icc_estimate_LIN2$ub, sad_icc_estimate_LIN$ub, sad_icc_estimate_HB2$ub, sad_icc_estimate_HB$ub)
 
 table2 <- data.frame(Method, OCCC, ICC, ICC_l, ICC_u)
-library(knitr)
-kable(table2)
+table2
 ```
 

@@ -3,9 +3,9 @@ output_dir: docs
 output:
   html_document:
     css: style.css
-    theme: cosmo
+    theme: flatly
     df_print: paged
-    highlight: textmate
+    highlight: pygments
     include:
       after_body: footer.md
     toc: yes
@@ -31,5 +31,5 @@ navbar:
   right:
   - text: source
     icon: fa-github-square
-    href: https://github.com/
+    href: https://github.com/emdelponte/paper-estimate-app
 

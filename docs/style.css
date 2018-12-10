@@ -1,14 +1,18 @@
 @import url('https://fonts.googleapis.com/css?family=Roboto+Condensed:400');
 @import url('https://fonts.googleapis.com/css?family=Oswald');
+@import url('https://fonts.googleapis.com/css?family=Crimson+Text');
+@import url('https://fonts.googleapis.com/css?family=Noto+Serif+TC');
 
 body {
-font-family: 'Roboto Condensed', sans-serif;
+font-family: 'Noto Serif TC', serif;
 margin-left:2px;
 margin-right:2px;
 margin-top: 20px;
-font-size: 20px;
-line-height: 1.6
+font-size: 19px;
+line-height: 1.7
 }
+
+a { color: #00994d;}
 
 p {
 line-height:1.5;
@@ -19,37 +23,46 @@ margin-right:0px;
   }
 
 pre.r { border: 0; 
-margin-bottom: 40px;
-  margin-top: 40px;
+margin-bottom: 20px;
+  margin-top: 20px;
 }
 
 
 pre {
   font-size:16px;
-  margin-bottom:40px;
+  padding: 20px;
+  margin-bottom:20px;
+  background-color:#f9f9f9;
   
 }
 
  
 h1, h2, h3,h4 { 
-  font-family: 'Oswald', sans-serif;
+  font-family: 'Roboto Condensed', sans-serif;
   padding-bottom: 20px;
   padding-top: 30px;
-  color: #4682b4;
+  color: #00000;
  
 } 
  
 .navbar-default {
-    background-color: #006699
+    background-color: #00994d;
+    font-family: 'Roboto Condensed', serif;
 
 }
 .list-group-item.active {
-    z-index: 2;
+    z-index: 3;
     color: #ffffff;
-    background-color: #006699;
+    background-color: #00994d;
     border-color: #006699
 }
 
+.list-group-item.active:hover {
+    z-index: 2;
+    color: #ffffff;
+    background-color: #00b359;
+    border-color: #006699
+}
 blockquote { background-color: #f9f9f9; margin-bottom: 40px;}
 
 
